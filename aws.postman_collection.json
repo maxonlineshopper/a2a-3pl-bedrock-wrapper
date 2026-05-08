@@ -10,8 +10,36 @@
     {
       "name": "RPC",
       "request": {
-        "method": "GET",
-        "header": []
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"jsonrpc\": \"2.0\",\r\n    \"id\": \"1\",\r\n    \"method\": \"message/send\",\r\n    \"params\": {\r\n        \"message\": {\r\n            \"role\": \"user\",\r\n            \"parts\": [\r\n                {\r\n                    \"kind\": \"text\",\r\n                    \"text\": \"Track DHL123456789\"\r\n                }\r\n            ]\r\n        }\r\n    }\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://iq7p6fycn7tityztmd7md4c2ne0tiblr.lambda-url.us-east-1.on.aws/rpc",
+          "protocol": "https",
+          "host": [
+            "iq7p6fycn7tityztmd7md4c2ne0tiblr",
+            "lambda-url",
+            "us-east-1",
+            "on",
+            "aws"
+          ],
+          "path": [
+            "rpc"
+          ]
+        }
       },
       "response": []
     },
