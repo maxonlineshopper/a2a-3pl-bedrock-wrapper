@@ -12,8 +12,8 @@ run:
     - name: AWS_REGION
       value: us-east-1
     - name: BEDROCK_AGENT_ID
-      value: placeholder
+      value: CFP6HKU4VJ
     - name: BEDROCK_AGENT_ALIAS_ID
-      value: placeholder
+      value: TSTALIASID
     - name: PUBLIC_BASE_URL
       value: placeholder
