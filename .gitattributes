@@ -1,0 +1,4 @@
+app.py text eol=lf
+Dockerfile text eol=lf
+.dockerignore text eol=lf
+README.md text eol=lf
