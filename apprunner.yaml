@@ -1,0 +1,19 @@
+version: 1.0
+runtime: python312
+build:
+  commands:
+    build:
+      - pip install -r requirements.txt
+run:
+  command: gunicorn --bind 0.0.0.0:8000 app:app
+  network:
+    port: 8000
+  env:
+    - name: AWS_REGION
+      value: us-east-1
+    - name: BEDROCK_AGENT_ID
+      value: placeholder
+    - name: BEDROCK_AGENT_ALIAS_ID
+      value: placeholder
+    - name: PUBLIC_BASE_URL
+      value: placeholder
