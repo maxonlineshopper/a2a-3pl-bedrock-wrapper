@@ -44,6 +44,13 @@ Health check:
 curl http://localhost:8000/health
 ```
 
+Example shipment prompts:
+
+```text
+Track DHL123456789
+Track UPS987654321
+```
+
 ## Docker Build
 
 ```bash
@@ -150,7 +157,7 @@ curl -X POST https://your-public-alb-domain/rpc \
         "parts": [
           {
             "kind": "text",
-            "text": "Track DHL123456789"
+            "text": "Track UPS987654321"
           }
         ]
       }

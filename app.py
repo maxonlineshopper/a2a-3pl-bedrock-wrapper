@@ -71,8 +71,8 @@ def agent_card():
                     "description": "Answer shipment tracking and delivery status questions.",
                     "examples": [
                         "Track shipment DHL123456789",
+                        "Track shipment UPS987654321",
                         "Where is my package?",
-                        "When will order ORD-98765 arrive?",
                     ],
                 }
             ],
