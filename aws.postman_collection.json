@@ -1,0 +1,64 @@
+{
+  "info": {
+    "_postman_id": "8ea8068e-5b88-4123-b234-f993e03b4c9f",
+    "name": "aws",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "17509794",
+    "_collection_link": "https://go.postman.co/collection/17509794-8ea8068e-5b88-4123-b234-f993e03b4c9f?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "RPC",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://iq7p6fycn7tityztmd7md4c2ne0tiblr.lambda-url.us-east-1.on.aws/health",
+          "protocol": "https",
+          "host": [
+            "iq7p6fycn7tityztmd7md4c2ne0tiblr",
+            "lambda-url",
+            "us-east-1",
+            "on",
+            "aws"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "AgentCard",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://iq7p6fycn7tityztmd7md4c2ne0tiblr.lambda-url.us-east-1.on.aws/.well-known/agent-card.json",
+          "protocol": "https",
+          "host": [
+            "iq7p6fycn7tityztmd7md4c2ne0tiblr",
+            "lambda-url",
+            "us-east-1",
+            "on",
+            "aws"
+          ],
+          "path": [
+            ".well-known",
+            "agent-card.json"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
