@@ -8,8 +8,8 @@ from flask import Flask, jsonify, request
 app = Flask(__name__)
 
 AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
-BEDROCK_AGENT_ID = os.getenv("BEDROCK_AGENT_ID", "")
-BEDROCK_AGENT_ALIAS_ID = os.getenv("BEDROCK_AGENT_ALIAS_ID", "")
+BEDROCK_AGENT_ID = os.getenv("BEDROCK_AGENT_ID", "CFP6HKU4VJ")
+BEDROCK_AGENT_ALIAS_ID = os.getenv("BEDROCK_AGENT_ALIAS_ID", "TSTALIASID")
 PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "http://localhost:8000").rstrip("/")
 
 bedrock_runtime = boto3.client("bedrock-agent-runtime", region_name=AWS_REGION)

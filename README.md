@@ -1,43 +1,115 @@
-# AWS App Runner Bedrock Agent A2A Endpoint
+# ECS Fargate Bedrock Agent A2A Wrapper
 
-This project is a minimal Python Flask service for AWS App Runner that exposes an Amazon Bedrock Agent through an A2A-compatible HTTP interface.
+This project is a minimal Flask HTTP service that exposes an Amazon Bedrock Agent as an A2A-compatible endpoint. It is packaged as a Docker container for deployment to AWS ECS Fargate behind an Application Load Balancer.
 
-It provides:
+The service provides:
 
 - `GET /.well-known/agent-card.json` for the A2A Agent Card
 - `POST /rpc` for A2A JSON-RPC messages
-- `GET /health` for health checks
+- `GET /health` for load balancer health checks
 
-Incoming message text is extracted from `params.message.parts[].text`, forwarded to Amazon Bedrock Agent Runtime with `boto3` `invoke_agent`, and returned as an A2A-compatible JSON-RPC response.
+Incoming message text is extracted from `params.message.parts[].text`, sent to Amazon Bedrock Agent Runtime with `boto3` `invoke_agent`, and returned in an A2A-compatible JSON-RPC response.
+
+## Architecture
+
+```text
+Agent Fabric -> ALB -> ECS Fargate A2A Wrapper -> Bedrock Agent -> Lambda
+```
 
 ## Environment Variables
 
-Set these values in AWS App Runner:
+Configure these variables on the ECS task definition:
 
-| Name | Example |
+| Name | Value |
 | --- | --- |
 | `AWS_REGION` | `us-east-1` |
-| `BEDROCK_AGENT_ID` | `placeholder` |
-| `BEDROCK_AGENT_ALIAS_ID` | `placeholder` |
-| `PUBLIC_BASE_URL` | `https://your-app-runner-url.awsapprunner.com` |
+| `BEDROCK_AGENT_ID` | `CFP6HKU4VJ` |
+| `BEDROCK_AGENT_ALIAS_ID` | `TSTALIASID` |
+| `PUBLIC_BASE_URL` | `https://your-public-alb-domain` |
 
-## Deploy to AWS App Runner
+## Local Run
 
-1. Push this project to a GitHub repository.
-2. Open the AWS Console.
-3. Go to AWS App Runner.
-4. Choose **Create service**.
-5. Select **Source code repository**.
-6. Connect your GitHub account and choose this repository.
-7. Choose the branch to deploy.
-8. Select **Use a configuration file** so App Runner uses `apprunner.yaml`.
-9. Configure the service instance role with permission to invoke your Bedrock Agent.
-10. Set the required environment variables.
-11. Create and deploy the service.
+```bash
+pip install -r requirements.txt
+AWS_REGION=us-east-1 \
+BEDROCK_AGENT_ID=CFP6HKU4VJ \
+BEDROCK_AGENT_ALIAS_ID=TSTALIASID \
+PUBLIC_BASE_URL=http://localhost:8000 \
+gunicorn --bind 0.0.0.0:8000 app:app
+```
 
-## Required IAM Policy
+Health check:
 
-Attach this policy to the App Runner service instance role:
+```bash
+curl http://localhost:8000/health
+```
+
+## Docker Build
+
+```bash
+docker build -t a2a-3pl-bedrock-wrapper .
+docker run --rm -p 8000:8000 \
+  -e AWS_REGION=us-east-1 \
+  -e BEDROCK_AGENT_ID=CFP6HKU4VJ \
+  -e BEDROCK_AGENT_ALIAS_ID=TSTALIASID \
+  -e PUBLIC_BASE_URL=http://localhost:8000 \
+  a2a-3pl-bedrock-wrapper
+```
+
+## Push to Amazon ECR
+
+Set your AWS account and region:
+
+```bash
+export AWS_ACCOUNT_ID=123456789012
+export AWS_REGION=us-east-1
+export ECR_REPOSITORY=a2a-3pl-bedrock-wrapper
+```
+
+Create the ECR repository:
+
+```bash
+aws ecr create-repository \
+  --repository-name $ECR_REPOSITORY \
+  --region $AWS_REGION
+```
+
+Authenticate Docker to ECR:
+
+```bash
+aws ecr get-login-password --region $AWS_REGION | \
+  docker login --username AWS --password-stdin \
+  $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+```
+
+Tag and push the image:
+
+```bash
+docker tag a2a-3pl-bedrock-wrapper:latest \
+  $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
+
+docker push \
+  $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
+```
+
+## ECS Fargate Deployment
+
+1. Create or choose an ECS cluster.
+2. Create an ECR repository and push the Docker image.
+3. Create an ECS task execution role for pulling the image and writing logs.
+4. Create an ECS task role with permission to invoke the Bedrock Agent.
+5. Create a Fargate task definition using the ECR image.
+6. Set container port `8000`.
+7. Add the required environment variables to the container definition.
+8. Create an Application Load Balancer.
+9. Create an ALB target group for IP targets on port `8000`.
+10. Set the target group health check path to `/health`.
+11. Create an ECS service using Fargate and attach it to the ALB target group.
+12. Set `PUBLIC_BASE_URL` to the public ALB URL or your custom domain.
+
+## Required ECS Task Role IAM Policy
+
+Attach this policy to the ECS task role:
 
 ```json
 {
@@ -45,7 +117,10 @@ Attach this policy to the App Runner service instance role:
   "Statement": [
     {
       "Effect": "Allow",
-      "Action": "bedrock:InvokeAgent",
+      "Action": [
+        "bedrock:InvokeAgent",
+        "bedrock-agent-runtime:InvokeAgent"
+      ],
       "Resource": "*"
     }
   ]
@@ -54,40 +129,28 @@ Attach this policy to the App Runner service instance role:
 
 For production, scope `Resource` to the specific Bedrock Agent alias ARN.
 
-## Local Run
+## Agent Card URL
 
-```bash
-pip install -r requirements.txt
-AWS_REGION=us-east-1 \
-BEDROCK_AGENT_ID=placeholder \
-BEDROCK_AGENT_ALIAS_ID=placeholder \
-PUBLIC_BASE_URL=http://localhost:8000 \
-gunicorn --bind 0.0.0.0:8000 app:app
+```text
+https://your-public-alb-domain/.well-known/agent-card.json
 ```
 
-## Test Agent Card
+## JSON-RPC Request
 
 ```bash
-curl http://localhost:8000/.well-known/agent-card.json
-```
-
-## Test JSON-RPC Endpoint
-
-```bash
-curl -X POST http://localhost:8000/rpc \
+curl -X POST https://your-public-alb-domain/rpc \
   -H "Content-Type: application/json" \
   -d '{
     "jsonrpc": "2.0",
-    "id": "req-1",
+    "id": "1",
     "method": "message/send",
     "params": {
-      "id": "task-1",
-      "sessionId": "demo-session",
       "message": {
+        "role": "user",
         "parts": [
           {
             "kind": "text",
-            "text": "Track shipment SHIP-12345"
+            "text": "Track DHL123456789"
           }
         ]
       }
