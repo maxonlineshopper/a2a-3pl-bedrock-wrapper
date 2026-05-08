@@ -1,0 +1,76 @@
+import json
+
+import json
+
+def lambda_handler(event, context):
+    tracking_number = None
+
+    for param in event.get("parameters", []):
+        if param.get("name") == "trackingNumber":
+            tracking_number = param.get("value")
+
+    shipments = {
+        "DHL123456789": {
+            "carrier": "DHL",
+            "trackingNumber": "DHL123456789",
+            "status": "IN_TRANSIT",
+            "statusDescription": "In transit",
+            "location": "Leipzig Hub, Germany",
+            "estimatedDelivery": "2026-05-29",
+            "nextStep": "Shipment is moving through the DHL network."
+        },
+        "DHL987654321": {
+            "carrier": "DHL",
+            "trackingNumber": "DHL987654321",
+            "status": "DELIVERED",
+            "statusDescription": "Delivered",
+            "location": "Berlin, Germany",
+            "estimatedDelivery": "Delivered on 2026-05-27",
+            "nextStep": "No further logistics action required."
+        },
+        "UPS123456789": {
+            "carrier": "UPS",
+            "trackingNumber": "UPS123456789",
+            "status": "EXCEPTION",
+            "statusDescription": "Delivery exception",
+            "location": "Cologne, Germany",
+            "estimatedDelivery": "Pending",
+            "nextStep": "Address verification required before delivery can continue."
+        },
+        "UPS987654321": {
+            "carrier": "UPS",
+            "trackingNumber": "UPS987654321",
+            "status": "OUT_FOR_DELIVERY",
+            "statusDescription": "Out for delivery",
+            "location": "Potsdam, Germany",
+            "estimatedDelivery": "2026-05-28",
+            "nextStep": "Delivery expected today."
+        }
+    }
+
+    result = shipments.get(tracking_number, {
+        "carrier": "UNKNOWN",
+        "trackingNumber": tracking_number,
+        "status": "NOT_FOUND",
+        "statusDescription": "No shipment found",
+        "location": "Unknown",
+        "estimatedDelivery": "Unknown",
+        "nextStep": "Check the tracking number or contact the merchant."
+    })
+
+    body = json.dumps(result)
+
+    return {
+        "messageVersion": "1.0",
+        "response": {
+            "actionGroup": event.get("actionGroup"),
+            "function": event.get("function"),
+            "functionResponse": {
+                "responseBody": {
+                    "TEXT": {
+                        "body": body
+                    }
+                }
+            }
+        }
+    }
